@@ -67,18 +67,19 @@ def one_night_text(screen):
     if y != 255:
         y = y + 1
 
+clock = pygame.time.Clock()
+
 if __name__ == '__main__':
     pygame.init()
     size = width, height = 1200, 950
     screen = pygame.display.set_mode(size)
     screen.fill((0, 0, 0))
-    clock = pygame.time.Clock()
 
     running = True
     while running:
         one_night_text(screen)
         pygame.display.flip()
-        clock.tick(50)
+        clock.tick(10)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
