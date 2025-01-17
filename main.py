@@ -40,8 +40,32 @@ if __name__ == '__main__':
         pygame.display.flip()
 
         for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if (pygame.mouse.get_pos()[0] >= width // 2 - text.get_width() // 2 and
+                        pygame.mouse.get_pos()[0] <= width // 2 + text.get_width() // 2 and
+                        pygame.mouse.get_pos()[1] >= height // 2 - text.get_height() // 2 and
+                        pygame.mouse.get_pos()[1] <= height // 2 + text.get_height() // 2):
+                            screen.fill((0, 0, 0))
+                            running = False
+
             if event.type == pygame.QUIT:
                 running = False
 
         pygame.display.flip()
+    pygame.quit()
+
+if __name__ == '__main__':
+    pygame.init()
+    size = width, height = 1200, 950
+    screen = pygame.display.set_mode(size)
+    screen.fill((0, 0, 0))
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        pygame.display.flip()
+
     pygame.quit()
