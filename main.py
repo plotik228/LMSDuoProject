@@ -86,7 +86,7 @@ def rules_render(screen, rule, y, cnt):
             for l in i:
                 text = font.render(l, True, (255, 255, 255))
                 screen.blit(text, (x, y))
-                clock.tick(100)
+                clock.tick(25)
                 pygame.display.flip()
                 x += 10
                 for event in pygame.event.get():
