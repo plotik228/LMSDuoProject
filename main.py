@@ -2,6 +2,10 @@ import pygame
 import sys
 import random
 import time
+import os
+
+from pygame.examples.aliens import load_image
+from pygame.examples.cursors import image
 
 
 def terminate():
@@ -25,7 +29,7 @@ def zastavka(screen, width, height):
 
 if __name__ == '__main__':
     pygame.init()
-    size = width, height = 1600, 750
+    size = width, height = 1600, 720
     screen = pygame.display.set_mode(size)
 
     running = True
@@ -65,19 +69,6 @@ if __name__ == '__main__':
 clock = pygame.time.Clock()
 start_time = time.time()
 
-cnt_12 = 0
-
-def one_night_text(screen):
-    global cnt_12
-    if cnt_12 == 0:
-        font = pygame.font.SysFont('Consolas', 60)
-        text = font.render('12:00 AM', True, (255, 255, 255))
-        screen.blit(text, (800 - text.get_width() // 2, 375 - text.get_height() // 2))
-        pygame.display.flip()
-        cnt12 = 1
-    else:
-        pass
-
 def rules_render(screen, rule, y, cnt):
     if cnt == 0:
         font = pygame.font.SysFont('Consolas', 20)
@@ -86,7 +77,7 @@ def rules_render(screen, rule, y, cnt):
             for l in i:
                 text = font.render(l, True, (255, 255, 255))
                 screen.blit(text, (x, y))
-                clock.tick(25)
+                clock.tick(600)
                 pygame.display.flip()
                 x += 10
                 for event in pygame.event.get():
@@ -140,16 +131,19 @@ cnts = [cnt1, cnt2, cnt3, cnt4, cnt5, cnt6]
 
 if __name__ == '__main__':
     pygame.init()
-    size = width, height = 1600, 750
+    size = width, height = 1600, 720
     screen = pygame.display.set_mode(size)
-    screen.fill((0, 0, 0))
 
     running = True
     while running:
-        one_night_text(screen)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        screen.fill((0, 0, 0))
+        font = pygame.font.Font(None, 60)
+        text = font.render('12:00 AM', True, (255, 255, 255))
+        screen.blit(text, (width // 2 - text.get_width() // 2, height // 2 - text.get_height() // 2))
+
         elapsed_time = time.time() - start_time
         if elapsed_time >= 4:
             screen.fill((0, 0, 0))
@@ -158,14 +152,71 @@ if __name__ == '__main__':
                 if rules[i] == rules_4:
                     screen.fill((0, 0, 0))
                     y = 50
-                pygame.time.wait(1000)
+                # pygame.time.wait(1000)
                 rules_render(screen, rules[i], y, cnts[i])
                 y += (len(rules[i]) + 1) * 30 + 30
                 cnts[i] = 1
+
+            text = font.render('12:00 AM', True, (0, 0, 0))
+            screen.blit(text, (width // 2 - text.get_width() // 2, height // 2 - text.get_height() // 2))
+
             screen.fill((0, 0, 0))
-            while pygane.event.wait().type != pygame.MOUSEBUTTONDOWN:
-                pass
-            
+            font = pygame.font.Font(None, 70)
+            text = font.render("НАЧАТЬ ИГРУ", True, (255, 255, 255))
+            screen.blit(text, (width // 2 - text.get_width() // 2, height // 2 - text.get_height() // 2))
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if (pygame.mouse.get_pos()[0] >= width // 2 - text.get_width() // 2 and
+                            pygame.mouse.get_pos()[0] <= width // 2 + text.get_width() // 2 and
+                            pygame.mouse.get_pos()[1] >= height // 2 - text.get_height() // 2 and
+                            pygame.mouse.get_pos()[1] <= height // 2 + text.get_height() // 2):
+                        running = False
+            pygame.display.flip()
+        pygame.display.flip()
 
+    pygame.quit()
 
+def load_image(name, colorkey=None):
+    fullname = os.path.join('fnaf', name)
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
+    return image
+
+if __name__ == '__main__':
+    pygame.init()
+    size = width, height = 1600, 720
+    screen = pygame.display.set_mode(size)
+    screen.fill((0, 0, 0))
+
+    all_vents = pygame.sprite.GroupSingle()
+    vent_images = [load_image("vent1.png"), load_image("vent2.png"), load_image("vent3.png")]
+
+    cur_frame = 0
+    last_frame_time = 0
+    frame_delay = 10
+
+    vent_sprite = pygame.sprite.Sprite()
+    vent_sprite.image = vent_images[cur_frame]
+    vent_sprite.rect = vent_sprite.image.get_rect(topleft=(779, 302))
+    all_vents.add(vent_sprite)
+
+    clock = pygame.time.Clock()
+
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        image = load_image("sec1.png")
+        screen.blit(image, (0, 0))
+        current_time = pygame.time.get_ticks()
+        if current_time - last_frame_time >= frame_delay:
+            cur_frame = (cur_frame + 1) % len(vent_images)
+            all_vents.sprite.image = vent_images[cur_frame]
+            last_frame_time = current_time
+        all_vents.draw(screen)
+
+        pygame.display.flip()
     pygame.quit()
