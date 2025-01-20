@@ -14,8 +14,8 @@ def terminate():
 
 
 def draw(screen, width, height):
-    for i in range(2222):
-        screen.fill(pygame.Color((160, 160, 160)),
+    for i in range(10000):
+        screen.fill(pygame.Color((180, 180, 180)),
                     (random.random() * width,
                      random.random() * height, 1, 1))
 
@@ -202,7 +202,7 @@ def terminate():
 pygame.init()
 width, height = 1600, 720
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption('FNAF1')
+pygame.display.set_caption('FNAF 1')
 
 
 class Vents(pygame.sprite.Sprite):
@@ -240,7 +240,7 @@ class MonitorUp(pygame.sprite.Sprite):
         self.image = self.images[self.cur_frame]
         self.rect = self.image.get_rect(topleft=(x, y))
         self.last_frame_time = 0
-        self.frame_delay = 10
+        self.frame_delay = 1
 
     def update(self, animated_playing, animated_finished):
         if animated_playing:
@@ -273,7 +273,7 @@ class CameraUp(pygame.sprite.Sprite):
         self.image = self.images[self.cur_frame]
         self.rect = self.image.get_rect(topleft=(x, y))
         self.last_frame_time = 0
-        self.frame_delay = 10
+        self.frame_delay = 1
 
     def update(self, ap2, af2):
         if ap2:
@@ -286,7 +286,12 @@ class CameraUp(pygame.sprite.Sprite):
                 else:
                     ap2 = False
                     af2 = True
-                    screen.blit(load_image("a1default.png"), (0, 0))
+
+    def gamestate(self, af2):
+        if self.cur_frame == len(self.images):
+            return "a1"
+        else:
+            return "cameras"
 
 
 def button():
@@ -296,6 +301,10 @@ def button():
     else:
         return False
 
+def drawing_elements_cam(screen):
+    screen.blit(load_image("fnaf_button_monitor.png"), (335, 650))
+    carta = pygame.transform.scale(load_image("carta.png"), (458, 282))
+    screen.blit(carta, (1100, 400))
 
 def office():
     all_vents = pygame.sprite.GroupSingle()
@@ -343,10 +352,19 @@ def office():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
-            screen.fill((0, 0, 0))
 
             all_camerasup.draw(screen)
             all_camerasup.update(ap2, af2)
+
+            gamestate = camerasup.gamestate(af2)
+
+        elif gamestate == 'a1':
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+
+            screen.blit(load_image("a1default.png"), (0, 0))
+            drawing_elements_cam(screen)
 
         pygame.display.flip()
 
