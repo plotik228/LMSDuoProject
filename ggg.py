@@ -79,7 +79,7 @@ def rules_render(screen, rule, y, cnt):
             for l in i:
                 text = font.render(l, True, (255, 255, 255))
                 screen.blit(text, (x, y))
-                clock.tick(600)
+                clock.tick(25)
                 pygame.display.flip()
                 x += 10
                 for event in pygame.event.get():
@@ -191,6 +191,13 @@ def load_image(name, colorkey=None):
         print(f"Файл с изображением '{fullname}' не найден")
         sys.exit()
     image = pygame.image.load(fullname)
+    if colorkey is not None:
+        image = image.convert()
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
     return image
 
 
@@ -240,7 +247,7 @@ class MonitorUp(pygame.sprite.Sprite):
         self.image = self.images[self.cur_frame]
         self.rect = self.image.get_rect(topleft=(x, y))
         self.last_frame_time = 0
-        self.frame_delay = 1
+        self.frame_delay = 10
 
     def update(self, animated_playing, animated_finished):
         if animated_playing:
@@ -253,10 +260,12 @@ class MonitorUp(pygame.sprite.Sprite):
                 else:
                     animated_playing = False
                     animated_finished = True
+                    self.kill()
 
     def gamestate(self):
         if self.cur_frame == len(self.images):
-            return 'cameras'
+            self.cur_frame = 0
+            return 'camerasup'
         else:
             return 'office'
 
@@ -287,12 +296,49 @@ class CameraUp(pygame.sprite.Sprite):
                     ap2 = False
                     af2 = True
 
-    def gamestate(self, af2):
+    def gamestate(self, gamestate1, gamestate2):
         if self.cur_frame == len(self.images):
-            return "a1"
+            self.cur_frame = 0
+            return gamestate1
         else:
-            return "cameras"
+            return gamestate2
 
+
+class MonitorDown(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.images = []
+        self.image = pygame.Surface((0, 0))
+        self.images.append(self.image)
+        for i in range(10, 0, -1):
+            image = load_image(f"mon{i}.png")
+            image = pygame.transform.scale(image, (1600, 720))
+            self.images.append(image)
+        self.cur_frame = 0
+        self.image = self.images[self.cur_frame]
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.last_frame_time = 0
+        self.frame_delay = 10
+
+    def update(self, animated_playing, animated_finished, screen):
+        if animated_playing:
+            cur_time = pygame.time.get_ticks()
+            if cur_time - self.last_frame_time >= self.frame_delay:
+                self.cur_frame = self.cur_frame + 1
+                if self.cur_frame < len(self.images):
+                    self.image = self.images[self.cur_frame]
+                    self.last_frame_time = cur_time
+                else:
+                    animated_playing = False
+                    animated_finished = True
+                    self.kill()
+
+    def gamestate(self, gamestate):
+        if self.cur_frame == len(self.images):
+            self.cur_frame = 0
+            return 'camerasdown'
+        else:
+            return 'a1'
 
 def button():
     if pygame.mouse.get_pos()[0] >= 335 and pygame.mouse.get_pos()[0] <= 935 \
@@ -303,7 +349,7 @@ def button():
 
 def drawing_elements_cam(screen):
     screen.blit(load_image("fnaf_button_monitor.png"), (335, 650))
-    carta = pygame.transform.scale(load_image("carta.png"), (458, 282))
+    carta = pygame.transform.scale(load_image("camers_carta.png", -1), (458, 282))
     screen.blit(carta, (1100, 400))
 
 def office():
@@ -313,22 +359,27 @@ def office():
 
     all_mon_up = pygame.sprite.GroupSingle()
     monitors = MonitorUp(0, 0)
-    all_mon_up.add(monitors)
 
     all_camerasup = pygame.sprite.GroupSingle()
     camerasup = CameraUp(0, 0)
     all_camerasup.add(camerasup)
 
-    ap2 = True
-    af2 = False
+    all_mon_down = pygame.sprite.GroupSingle()
+    monitors_down = MonitorDown(0, 0)
 
-    animated_finished = False
+    animated_finished3 = False
+    animated_playing3 = False
+
     animated_playing = False
+    animated_finished = False
 
     gamestate = 'office'
     running = True
+
     while running:
+
         if gamestate == 'office':
+
             screen.blit(load_image("sec1.png"), (0, 0))
 
             all_vents.update()
@@ -341,6 +392,7 @@ def office():
                     terminate()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if button() and animated_finished == False:
+                        all_mon_up.add(monitors)
                         animated_playing = True
 
             all_mon_up.draw(screen)
@@ -348,7 +400,12 @@ def office():
 
             gamestate = monitors.gamestate()
 
-        elif gamestate == 'cameras':
+            image = 'a1default.png'
+
+        elif gamestate == 'camerasup':
+            ap2 = True
+            af2 = False
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
@@ -356,15 +413,39 @@ def office():
             all_camerasup.draw(screen)
             all_camerasup.update(ap2, af2)
 
-            gamestate = camerasup.gamestate(af2)
+            gamestate = camerasup.gamestate('a1', 'camerasup')
 
         elif gamestate == 'a1':
+
+            screen.blit(load_image(image), (0, 0))
+            drawing_elements_cam(screen)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if button() and animated_finished3 == False:
+                        screen.blit(load_image("sec1.png"), (0, 0))
+                        all_mon_down.add(monitors_down)
+                        animated_playing3 = True
+
+            all_mon_down.draw(screen)
+            all_mon_down.update(animated_playing3, animated_finished3, screen)
+
+            gamestate = monitors_down.gamestate(gamestate)
+
+        elif gamestate == 'camerasdown':
+            ap2 = True
+            af2 = False
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
 
-            screen.blit(load_image("a1default.png"), (0, 0))
-            drawing_elements_cam(screen)
+            all_camerasup.draw(screen)
+            all_camerasup.update(ap2, af2)
+
+            gamestate = camerasup.gamestate('office', 'camerasdown')
 
         pygame.display.flip()
 
