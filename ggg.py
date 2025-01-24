@@ -512,6 +512,7 @@ def office():
                 if image == '6.png':
                     w = width // 2 - load_image(image6).get_width() // 2
                     h = height // 2 - load_image(image6).get_height() // 2
+                    coord = -1
                 else:
                     w = 0
                     h = 0
