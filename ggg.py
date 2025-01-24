@@ -318,7 +318,7 @@ class MonitorDown(pygame.sprite.Sprite):
         self.image = self.images[self.cur_frame]
         self.rect = self.image.get_rect(topleft=(x, y))
         self.last_frame_time = 0
-        self.frame_delay = 10
+        self.frame_delay = 20
 
     def update(self, animated_playing, animated_finished, screen, stop):
         if animated_playing:
@@ -341,6 +341,7 @@ class MonitorDown(pygame.sprite.Sprite):
         else:
             return False
 
+
 def button():
     if pygame.mouse.get_pos()[0] >= 335 and pygame.mouse.get_pos()[0] <= 935 \
             and pygame.mouse.get_pos()[1] >= 650 and pygame.mouse.get_pos()[1] <= 710:
@@ -348,43 +349,49 @@ def button():
     else:
         return False
 
+
 def drawing_elements_cam(screen, stop):
     if not stop:
         screen.blit(load_image("fnaf_button_monitor.png"), (335, 650))
         carta = pygame.transform.scale(load_image("camers_carta.png", -1), (458, 282))
         screen.blit(carta, (1100, 400))
-    else:
-        return
 
-def camera_return(x, y, gamestate, down, click):
+
+def image_return(x, y, click, image, imageb1, imagea1, image5, imagec1, image3, imagea2, imageb2, imagea4, imageb4,
+                 image6, image7):
     if click:
         click = False
         if x >= 1224 and x <= 1290 and y >= 447 and y <= 481:
-            return "b1"
+            return imageb1
         elif x >= 1248 and x <= 1313 and y >= 403 and y <= 439:
-            return "a1"
+            return imagea1
         elif x >= 1110 and x <= 1177 and y >= 469 and y <= 503:
-            return "5"
+            return image5
         elif x >= 1192 and y >= 510 and x <= 1258 and y <= 542:
-            return 'c1'
+            return imagec1
         elif x >= 1157 and y >= 587 and x <= 1222 and y <= 619:
-            return '3'
+            return image3
         elif x >= 1248 and y >= 600 and x <= 1313 and y <= 629:
-            return 'a2'
+            return imagea2
         elif x >= 1247 and y >= 635 and x <= 1313 and y <= 663:
-            return 'b2'
+            return imageb2
         elif x >= 1364 and y >= 600 and x <= 1428 and y <= 630:
-            return 'a4'
+            return imagea4
         elif x >= 1363 and y >= 635 and x <= 1429 and y <= 664:
-            return 'b4'
+            return imageb4
         elif x >= 1468 and y >= 572 and x <= 1535 and y <= 605:
-            return '6'
+            return image6
         elif x >= 1477 and y >= 470 and x <= 1543 and y <= 502:
-            return '7'
+            return image7
         else:
-            if down:
-                return 'office'
-            return gamestate
+            return image
+
+def office_back(gamestate, down):
+    if down:
+        return 'office'
+    else:
+        return gamestate
+
 
 def office():
     all_vents = pygame.sprite.GroupSingle()
@@ -415,6 +422,25 @@ def office():
 
     click = False
 
+    imagea1 = 'a1default.png'
+    imageb1 = "b1default.png"
+    imagec1 = 'c1default.png'
+    image5 = "5default.png"
+    image3 = '3default.png'
+    image6 = '6.png'
+    image7 = '7default.png'
+    imageb4 = 'b4default.png'
+    imageb2 = 'b2default.png'
+    imagea4 = 'a4default.png'
+    imagea2 = 'a2default.png'
+
+    image = imagea1
+
+    coord = None
+
+    w = 0
+    h = 0
+
     while running:
 
         if gamestate == 'office':
@@ -439,19 +465,14 @@ def office():
 
             gamestate = monitors.gamestate()
             stop = False
-            imagea1 = 'a1default.png'
-            imageb1 = "b1default.png"
-            imagec1 = 'c1default.png'
-            image5 = "5default.png"
-            image3 = '3default.png'
-            image6 = '6.png'
-            image7 = '7default.png'
-            imageb4 = 'b4default.png'
-            imageb2 = 'b2default.png'
-            imagea4 = 'a4default.png'
-            imagea2 = 'a2default.png'
+
+            fon6 = pygame.Surface((1600, 720))
+            fon6.fill((0, 0, 0))
+
+            image = 'a1default.png'
 
         elif gamestate == 'camerasup':
+
             ap2 = True
             af2 = False
 
@@ -462,245 +483,11 @@ def office():
             all_camerasup.draw(screen)
             all_camerasup.update(ap2, af2)
 
-            gamestate = camerasup.gamestate('a1', 'camerasup')
+            gamestate = camerasup.gamestate('camera', 'camerasup')
 
-        elif gamestate == 'a1':
-            screen.blit(load_image(imagea1), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        imagea1 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-        elif gamestate == 'b1':
-
-            screen.blit(load_image(imageb1), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        imageb1 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-
-        elif gamestate == 'c1':
-            screen.blit(load_image(imagec1), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        imageb1 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-        elif gamestate == '5':
-            screen.blit(load_image(image5), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        image5 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-        elif gamestate == '7':
-            screen.blit(load_image(image7), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        image7 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-        elif gamestate == '3':
-            screen.blit(load_image(image3), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        image3 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-        elif gamestate == 'a2':
-            screen.blit(load_image(imagea2), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        imagea2 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-        elif gamestate == 'b2':
-            screen.blit(load_image(imageb2), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        imageb2 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-        elif gamestate == 'a4':
-            screen.blit(load_image(imagea4), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        imagea4 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-        elif gamestate == 'b4':
-            screen.blit(load_image(imageb4), (0, 0))
-            drawing_elements_cam(screen, stop)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if button() and animated_finished3 == False:
-                        stop = True
-                        imageb4 = "sec1.png"
-                        all_mon_down.add(monitors_down)
-                        animated_playing3 = True
-                    x = pygame.mouse.get_pos()[0]
-                    y = pygame.mouse.get_pos()[1]
-                    click = True
-
-            all_mon_down.draw(screen)
-
-            all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
-            if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
-
-        elif gamestate == '6':
-            width6 = width // 2 - load_image(image6, -1).get_width() // 2
-            height6 = height // 2 - load_image(image6, -1).get_height() // 2
+        elif gamestate == 'camera':
             screen.fill((0, 0, 0))
-            screen.blit(load_image(image6), (width6, height6))
+            screen.blit(load_image(image, coord), (w, h))
             drawing_elements_cam(screen, stop)
 
             for event in pygame.event.get():
@@ -709,7 +496,7 @@ def office():
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if button() and animated_finished3 == False:
                         stop = True
-                        image6 = "sec1.png"
+                        image = "sec1.png"
                         all_mon_down.add(monitors_down)
                         animated_playing3 = True
                     x = pygame.mouse.get_pos()[0]
@@ -717,11 +504,279 @@ def office():
                     click = True
 
             all_mon_down.draw(screen)
-
             all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+
             if x != -1 and y != -1:
-                gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+                image = image_return(x, y, click, image, imageb1, imagea1, image5, imagec1, image3, imagea2, imageb2,
+                                     imagea4, imageb4, image6, image7)
+                if image == '6.png':
+                    w = width // 2 - load_image(image6).get_width() // 2
+                    h = height // 2 - load_image(image6).get_height() // 2
+                else:
+                    w = 0
+                    h = 0
+
+            gamestate = office_back(gamestate, monitors_down.gamestate())
+
+        # elif gamestate == 'a1':
+        #     screen.blit(load_image(imagea1), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 imagea1 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        # elif gamestate == 'b1':
+        #
+        #     screen.blit(load_image(imageb1), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 imageb1 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        #
+        # elif gamestate == 'c1':
+        #     screen.blit(load_image(imagec1), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 imageb1 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        # elif gamestate == '5':
+        #     screen.blit(load_image(image5), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 image5 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        # elif gamestate == '7':
+        #     screen.blit(load_image(image7), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 image7 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        # elif gamestate == '3':
+        #     screen.blit(load_image(image3), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 image3 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        # elif gamestate == 'a2':
+        #     screen.blit(load_image(imagea2), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 imagea2 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        # elif gamestate == 'b2':
+        #     screen.blit(load_image(imageb2), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 imageb2 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        # elif gamestate == 'a4':
+        #     screen.blit(load_image(imagea4), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 imagea4 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        # elif gamestate == 'b4':
+        #     screen.blit(load_image(imageb4), (0, 0))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 imageb4 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
+        #
+        # elif gamestate == '6':
+        #     width6 = width // 2 - load_image(image6, -1).get_width() // 2
+        #     height6 = height // 2 - load_image(image6, -1).get_height() // 2
+        #     screen.blit(fon6, (0, 0))
+        #     screen.blit(load_image(image6, -1), (width6, height6))
+        #     drawing_elements_cam(screen, stop)
+        #
+        #     for event in pygame.event.get():
+        #         if event.type == pygame.QUIT:
+        #             terminate()
+        #         elif event.type == pygame.MOUSEBUTTONDOWN:
+        #             if button() and animated_finished3 == False:
+        #                 stop = True
+        #                 image6 = "sec1.png"
+        #                 all_mon_down.add(monitors_down)
+        #                 animated_playing3 = True
+        #             x = pygame.mouse.get_pos()[0]
+        #             y = pygame.mouse.get_pos()[1]
+        #             click = True
+        #
+        #     all_mon_down.draw(screen)
+        #
+        #     all_mon_down.update(animated_playing3, animated_finished3, screen, stop)
+        #     if x != -1 and y != -1:
+        #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
 
         pygame.display.flip()
+
 
 office()
