@@ -19,15 +19,6 @@ def draw(screen, width, height):
                     (random.random() * width,
                      random.random() * height, 1, 1))
 
-
-def zastavka(screen, width, height):
-    global font
-    font = pygame.font.Font(None, 70)
-    global text
-    text = font.render("PLAY", True, (255, 255, 255))
-    screen.blit(text, (width // 2 - text.get_width() // 2, height // 2 - text.get_height() // 2))
-
-
 if __name__ == '__main__':
     pygame.init()
     size = width, height = 1600, 720
@@ -341,6 +332,43 @@ class MonitorDown(pygame.sprite.Sprite):
         else:
             return False
 
+class Bonnie(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.images = []
+        self.image = pygame.Surface((0, 0))
+        self.images.append(self.image)
+        for i in range(1, 12):
+            image = load_image(f"bonnie{i}.png")
+            image = pygame.transform.scale(image, (1600, 720))
+            self.images.append(image)
+        self.cur_frame = 0
+        self.image = self.images[self.cur_frame]
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.last_frame_time = 0
+        self.frame_delay = 20
+
+    def update(self, animated_playing, animated_finished):
+        if animated_playing:
+            cur_time = pygame.time.get_ticks()
+            if cur_time - self.last_frame_time >= self.frame_delay:
+                self.cur_frame = self.cur_frame + 1
+                if self.cur_frame < len(self.images):
+                    self.image = self.images[self.cur_frame]
+                    self.last_frame_time = cur_time
+                else:
+                    stop = False
+                    animated_playing = False
+                    animated_finished = True
+                    self.kill()
+
+    def gamestate(self, gamestate1, gamestate2):
+        if self.cur_frame == len(self.images):
+            self.cur_frame = 0
+            return gamestate1
+        else:
+            return gamestate2
+
 
 def button():
     if pygame.mouse.get_pos()[0] >= 335 and pygame.mouse.get_pos()[0] <= 935 \
@@ -392,8 +420,33 @@ def office_back(gamestate, down):
     else:
         return gamestate
 
+def left_door():
+    if pygame.mouse.get_pos()[0] >= 24 and pygame.mouse.get_pos()[0] <= 68 and pygame.mouse.get_pos()[1] >= 365 \
+        and pygame.mouse.get_pos()[1] <= 442:
+        return True
+    else:
+        return False
+
+def right_door():
+    if pygame.mouse.get_pos()[0] >= 1495 and pygame.mouse.get_pos()[0] <= 1539 and pygame.mouse.get_pos()[1] >= 365 \
+        and pygame.mouse.get_pos()[1] <= 442:
+        return True
+    else:
+        return False
+
+def hour_blit(hour, screen):
+    font = pygame.font.Font(None, 30)
+    text = font.render(hour, True, (255, 255, 255))
+    screen.blit(text, (1500, 20))
 
 def office():
+    algorithm = 1
+    last_hour = 0
+
+    bonnie_scream = pygame.sprite.GroupSingle()
+    bonnies = Bonnie(0, 0)
+    bonnie_scream.add(bonnies)
+
     all_vents = pygame.sprite.GroupSingle()
     vents = Vents(780, 303)
     all_vents.add(vents)
@@ -433,6 +486,9 @@ def office():
     imageb2 = 'b2default.png'
     imagea4 = 'a4default.png'
     imagea2 = 'a2default.png'
+    image_office = 'sec1.png'
+    left_light_door = 'left_light.png'
+    right_light_door = 'right_light.png'
 
     image = imagea1
 
@@ -441,11 +497,71 @@ def office():
     w = 0
     h = 0
 
+    cnt_left = 0
+    cnt_right = 0
+
+    hour = 12
+
+    bonnie_kick = False
+    ap_bonnie = False
+    af_bonnie = False
+
     while running:
+        font = pygame.font.Font(None, 40)
+        text = font.render(f"{hour} AM", True, (255, 255, 255))
+        screen.blit(text, (1500, 30))
+        current = pygame.time.get_ticks()
+        if current - last_hour >= 60000:
+            if hour % 12 <= 4:
+                hour = (hour + 1) % 12
+                last_hour = current
+            else:
+                hour = 6
+                gamestate = '6 am'
+        if algorithm == 1:
+            if current >= 20000:
+                imagec1 = "c1look.png"
+            if current >= 60000:
+                imagea1 = 'a1bonnie.png'
+                imageb1 = 'b1bonnie.png'
+            if current >= 80000:
+                imageb1 = 'b1bonnie2.png'
+                imagec1 = 'c1foxy.png'
+            if current >= 100000:
+                imagec1 = 'c1out.png'
+            if current >= 110000:
+                imageb1 = 'b1default.png'
+                image5 = '5bonnie1.png'
+            if current >= 150000:
+                imagec1 = 'c1itsme.png'
+            if current >= 200000:
+                imagea2 = 'a2foxy.png'
+                image5 = '5out.png'
+            if current >= 210000:
+                image5 = '5bonnie2.png'
+            if current >= 220000:
+                image5 = '5out.png'
+                imagea2 = 'a2bonnie.png'
+            if current >= 240000:
+                left_light_door = 'secbonnie.png'
+                if bonnie_kick:
+                    left_light_door = 'left_light.png'
+                    bonnie_kick = False
+            if current >= 260000:
+                if bonnie_kick:
+                    ap_bonnie = True
+                    af_bonnie = False
+                else:
+                    imagea1 = 'a1default.png'
+
+
+
+        pygame.display.flip()
 
         if gamestate == 'office':
-
-            screen.blit(load_image("sec1.png"), (0, 0))
+            screen.blit(load_image(image_office), (0, 0))
+            screen.blit(load_image("left_door.png", -1), (24, 365))
+            screen.blit(pygame.transform.scale(load_image("right_door.png", -1), (44, 77)), (1495, 365))
 
             all_vents.update()
             all_vents.draw(screen)
@@ -459,9 +575,28 @@ def office():
                     if button() and animated_finished == False:
                         all_mon_up.add(monitors)
                         animated_playing = True
+                    elif left_door():
+                        if cnt_left % 2 == 0:
+                            if left_light_door == 'secbonnie.png':
+                                bonnie_kick = True
+                            image_office = left_light_door
+                        else:
+                            image_office = 'sec1.png'
+                        cnt_left += 1
+                    elif right_door():
+                        if cnt_right % 2 == 0:
+                            image_office = right_light_door
+                        else:
+                            image_office = 'sec1.png'
+                        cnt_right += 1
+
 
             all_mon_up.draw(screen)
             all_mon_up.update(animated_playing, animated_finished)
+
+            bonnie_scream.draw(screen)
+            bonnie_scream.update(ap_bonnie, af_bonnie)
+            gamestate = bonnies.gamestate(gamestate, 'lose')
 
             gamestate = monitors.gamestate()
             stop = False
@@ -469,7 +604,7 @@ def office():
             fon6 = pygame.Surface((1600, 720))
             fon6.fill((0, 0, 0))
 
-            image = 'a1default.png'
+            image = imagea1
 
         elif gamestate == 'camerasup':
 
@@ -518,6 +653,18 @@ def office():
                     h = 0
 
             gamestate = office_back(gamestate, monitors_down.gamestate())
+
+        elif gamestate == '6 am':
+            screen.fill((0, 0, 0))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+
+        elif gamestate == 'lose':
+            screen.fill((0, 0, 0))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
 
         # elif gamestate == 'a1':
         #     screen.blit(load_image(imagea1), (0, 0))
@@ -777,7 +924,6 @@ def office():
         #     if x != -1 and y != -1:
         #         gamestate = camera_return(x, y, gamestate, monitors_down.gamestate(), click)
 
-        pygame.display.flip()
 
 
 office()
