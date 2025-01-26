@@ -347,6 +347,46 @@ class Bonnie(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=(x, y))
         self.last_frame_time = 0
         self.frame_delay = 20
+        self.current_cycle = 0
+        self.max_cycles = 2
+
+    def update(self, animated_playing, animated_finished):
+        if animated_playing:
+            cur_time = pygame.time.get_ticks()
+            if cur_time - self.last_frame_time >= self.frame_delay:
+                self.cur_frame = (self.cur_frame + 1) % len(self.images)
+                self.image = self.images[self.cur_frame]
+                self.last_frame_time = cur_time
+
+                if self.cur_frame == 0:
+                    self.current_cycle += 1
+                    if self.current_cycle >= self.max_cycles:
+                        animated_playing = False
+                        animated_finished = True
+                        self.kill()
+
+    def gamestate(self, gamestate1, gamestate2):
+        if self.current_cycle >= self.max_cycles:
+            return gamestate2
+        else:
+            return gamestate1
+
+
+class Foxy(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.images = []
+        self.image = pygame.Surface((0, 0))
+        self.images.append(self.image)
+        for i in range(1, 22):
+            image = load_image(f"foxy{i}.png")
+            image = pygame.transform.scale(image, (1600, 720))
+            self.images.append(image)
+        self.cur_frame = 0
+        self.image = self.images[self.cur_frame]
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.last_frame_time = 0
+        self.frame_delay = 20
 
     def update(self, animated_playing, animated_finished):
         if animated_playing:
@@ -357,18 +397,15 @@ class Bonnie(pygame.sprite.Sprite):
                     self.image = self.images[self.cur_frame]
                     self.last_frame_time = cur_time
                 else:
-                    stop = False
                     animated_playing = False
                     animated_finished = True
                     self.kill()
 
     def gamestate(self, gamestate1, gamestate2):
         if self.cur_frame == len(self.images):
-            self.cur_frame = 0
-            return gamestate1
-        else:
             return gamestate2
-
+        else:
+            return gamestate1
 
 def button():
     if pygame.mouse.get_pos()[0] >= 335 and pygame.mouse.get_pos()[0] <= 935 \
@@ -443,6 +480,10 @@ def office():
     algorithm = 1
     last_hour = 0
 
+    foxy_scream = pygame.sprite.GroupSingle()
+    foxies = Foxy(0, 0)
+    foxy_scream.add(foxies)
+
     bonnie_scream = pygame.sprite.GroupSingle()
     bonnies = Bonnie(0, 0)
     bonnie_scream.add(bonnies)
@@ -499,6 +540,7 @@ def office():
 
     cnt_left = 0
     cnt_right = 0
+    cnt_bonnie = 0
 
     hour = 12
 
@@ -506,18 +548,23 @@ def office():
     ap_bonnie = False
     af_bonnie = False
 
+    foxy_kick = False
+    ap_foxy = False
+    af_foxy = False
+
     while running:
         font = pygame.font.Font(None, 40)
         text = font.render(f"{hour} AM", True, (255, 255, 255))
-        screen.blit(text, (1500, 30))
-        current = pygame.time.get_ticks()
-        if current - last_hour >= 60000:
-            if hour % 12 <= 4:
-                hour = (hour + 1) % 12
-                last_hour = current
-            else:
-                hour = 6
-                gamestate = '6 am'
+        if gamestate != 'lose' and gamestate != '6 am':
+            screen.blit(text, (1500, 30))
+            current = pygame.time.get_ticks()
+            if current - last_hour >= 60000:
+                if hour % 12 <= 4:
+                    hour = (hour + 1) % 12
+                    last_hour = current
+                else:
+                    hour = 6
+                    gamestate = '6 am'
         if algorithm == 1:
             if current >= 20000:
                 imagec1 = "c1look.png"
@@ -543,18 +590,39 @@ def office():
                 image5 = '5out.png'
                 imagea2 = 'a2bonnie.png'
             if current >= 240000:
+                imagea2 = 'a2default.png'
                 left_light_door = 'secbonnie.png'
                 if bonnie_kick:
                     left_light_door = 'left_light.png'
-                    bonnie_kick = False
-            if current >= 260000:
-                if bonnie_kick:
+                    imagea1 = 'a1default.png'
+            if current >= 255000:
+                if not bonnie_kick:
                     ap_bonnie = True
                     af_bonnie = False
-                else:
-                    imagea1 = 'a1default.png'
-
-
+            if current >= 260000:
+                imagea2 = 'a2foxy.png'
+                left_light_door = 'foxy3.png'
+                if foxy_kick:
+                    left_light_door = 'left_light.png'
+                    imagec1 = 'c1default.png'
+                    imagea2 = 'a2default.png'
+            if current >= 270000:
+                imagea2 = 'a2default.png'
+            if current >= 280000:
+                if not foxy_kick:
+                    ap_foxy = True
+                    af_foxy = False
+            if current >= 290000:
+                imagea1 = 'a1look.png'
+            if current >= 305000:
+                imagea1 = 'a1chica.png'
+                image7 = '7chica1.png'
+            if current >= 325000:
+                image7 = '7chica2.png'
+            if current >= 340000:
+                imagea4 = 'a4chica1.png'
+            if current >= 355000:
+                imagea4 = 'a4chica2.png'
 
         pygame.display.flip()
 
@@ -579,6 +647,8 @@ def office():
                         if cnt_left % 2 == 0:
                             if left_light_door == 'secbonnie.png':
                                 bonnie_kick = True
+                            if left_light_door == 'foxy3.png':
+                                foxy_kick = True
                             image_office = left_light_door
                         else:
                             image_office = 'sec1.png'
@@ -596,15 +666,18 @@ def office():
 
             bonnie_scream.draw(screen)
             bonnie_scream.update(ap_bonnie, af_bonnie)
-            gamestate = bonnies.gamestate(gamestate, 'lose')
 
-            gamestate = monitors.gamestate()
+            foxy_scream.draw(screen)
+            foxy_scream.update(ap_foxy, af_foxy)
             stop = False
 
             fon6 = pygame.Surface((1600, 720))
             fon6.fill((0, 0, 0))
 
             image = imagea1
+            gamestate = monitors.gamestate()
+            gamestate = bonnies.gamestate(gamestate, 'lose')
+            gamestate = foxies.gamestate(gamestate, 'lose')
 
         elif gamestate == 'camerasup':
 
@@ -653,6 +726,14 @@ def office():
                     h = 0
 
             gamestate = office_back(gamestate, monitors_down.gamestate())
+
+            bonnie_scream.draw(screen)
+            bonnie_scream.update(ap_bonnie, af_bonnie)
+            gamestate = bonnies.gamestate(gamestate, 'lose')
+
+            foxy_scream.draw(screen)
+            foxy_scream.update(ap_foxy, af_foxy)
+            gamestate = foxies.gamestate(gamestate, 'lose')
 
         elif gamestate == '6 am':
             screen.fill((0, 0, 0))
