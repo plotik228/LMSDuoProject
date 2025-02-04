@@ -398,6 +398,43 @@ class Foxy(pygame.sprite.Sprite):
         else:
             return gamestate1
 
+
+class Chica(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.images = []
+        self.image = pygame.Surface((0, 0))
+        self.images.append(self.image)
+        for i in range(1, 17):
+            image = load_image(f"chica{i}.png")
+            image = pygame.transform.scale(image, (1600, 720))
+            self.images.append(image)
+        self.cur_frame = 0
+        self.image = self.images[self.cur_frame]
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.last_frame_time = 0
+        self.frame_delay = 20
+
+    def update(self, animated_playing, animated_finished):
+        if animated_playing:
+            cur_time = pygame.time.get_ticks()
+            if cur_time - self.last_frame_time >= self.frame_delay:
+                self.cur_frame = self.cur_frame + 1
+                if self.cur_frame < len(self.images):
+                    self.image = self.images[self.cur_frame]
+                    self.last_frame_time = cur_time
+                else:
+                    animated_playing = False
+                    animated_finished = True
+                    self.kill()
+
+    def gamestate(self, gamestate1, gamestate2):
+        if self.cur_frame == len(self.images):
+            return gamestate2
+        else:
+            return gamestate1
+
+
 def button():
     if pygame.mouse.get_pos()[0] >= 335 and pygame.mouse.get_pos()[0] <= 935 \
             and pygame.mouse.get_pos()[1] >= 650 and pygame.mouse.get_pos()[1] <= 710:
@@ -468,7 +505,7 @@ def hour_blit(hour, screen):
     screen.blit(text, (1500, 20))
 
 def office():
-    algorithm = 1
+    algorithm = 2
     last_hour = 0
 
     foxy_scream = pygame.sprite.GroupSingle()
@@ -478,6 +515,10 @@ def office():
     bonnie_scream = pygame.sprite.GroupSingle()
     bonnies = Bonnie(0, 0)
     bonnie_scream.add(bonnies)
+
+    chica_scream = pygame.sprite.GroupSingle()
+    chicas = Chica(0, 0)
+    chica_scream.add(chicas)
 
     all_vents = pygame.sprite.GroupSingle()
     vents = Vents(780, 303)
@@ -545,6 +586,10 @@ def office():
 
     stop_text = True
 
+    chica_kick = False
+    ap_chica = False
+    af_chica = False
+
     while running:
         font = pygame.font.Font(None, 40)
         text = font.render(f"{hour} AM", True, (255, 255, 255))
@@ -558,6 +603,7 @@ def office():
                 else:
                     hour = 6
                     gamestate = '6 am'
+
         if algorithm == 1:
             if current >= 10000:
                 imagec1 = "c1look.png"
@@ -582,12 +628,11 @@ def office():
             if current >= 125000:
                 image5 = '5out.png'
                 imagea2 = 'a2bonnie.png'
-            if current >= 140000:
-                imagea2 = 'a2default.png'
                 left_light_door = 'secbonnie.png'
                 if bonnie_kick:
                     left_light_door = 'left_light.png'
                     imagea1 = 'a1default.png'
+                    imagea2 = 'a2default.png'
             if current >= 155000:
                 if not bonnie_kick:
                     ap_bonnie = True
@@ -599,8 +644,6 @@ def office():
                     left_light_door = 'left_light.png'
                     imagec1 = 'c1default.png'
                     imagea2 = 'a2default.png'
-            if current >= 180000:
-                imagea2 = 'a2default.png'
             if current >= 195000:
                 if not foxy_kick:
                     ap_foxy = True
@@ -617,6 +660,93 @@ def office():
                 imagea4 = 'a4chica1.png'
             if current >= 235000:
                 imagea4 = 'a4chica2.png'
+
+        elif algorithm == 2:
+            if current >= 10000:
+                imagec1 = 'c1look.png'
+            if current >= 20000:
+                imagea1 = 'a1chica.png'
+                imagec1 = 'c1foxy.png'
+                image7 = '7chica1.png'
+            if current >= 30000:
+                imagec1 = 'c1out.png'
+            if current >= 40000:
+                image7 = '7chica2.png'
+            if current >= 55000:
+                imagec1 = 'c1itsme.png'
+            if current >= 70000:
+                image7 = '7default.png'
+                imagea2 = 'a2foxy.png'
+                imagea4 = 'a4chica1.png'
+            if current >= 80000:
+                left_light_door = 'foxy3.png'
+                if foxy_kick:
+                    left_light_door = 'left_light.png'
+                    imagec1 = 'c1default.png'
+                    imagea2 = 'a2default.png'
+            if current >= 95000:
+                imagea4 = 'a4chica2.png'
+                if not foxy_kick:
+                    ap_foxy = True
+                    af_foxy = False
+            if current >= 115000:
+                imagea4 = 'a4default.png'
+                imageb4 = 'b4chica1.png'
+            if current >= 125000:
+                imageb4 = 'b4chica2.png'
+            if current >= 135000:
+                imageb4 = 'b4chica3.png'
+                right_light_door = 'secchica.png'
+                if chica_kick:
+                    right_light_door = 'right_light.png'
+                    imagea1 = 'a1default.png'
+                    imageb4 = 'b4default.png'
+            if current >= 150000:
+                if not chica_kick:
+                    ap_chica = True
+                    af_chica = False
+                imagea1 = 'a1default.png'
+            if current >= 170000:
+                imagea1 = 'a1justfreddy.png'
+                imageb1 = 'b1bonnie.png'
+                image7 = '7chica1.png'
+            if current >= 175000:
+                imageb1 = 'b1bonnie2.png'
+            if current >= 185000:
+                imageb1 = 'b1default.png'
+                image5 = '5bonnie1.png'
+            if current >= 190000:
+                image5 = '5out.png'
+                image7 = '7chica2.png'
+            if current >= 195000:
+                image5 = '5bonnie2.png'
+            if current >= 200000:
+                image5 = '5default.png'
+                imagea2 = 'a2bonnie.png'
+                image7 = '7default.png'
+                imagea4 = 'a4chica1.png'
+                left_light_door = 'secbonnie.png'
+                if bonnie_kick:
+                    left_light_door = 'left_light.png'
+                    imagea1 = 'a1chica.png'
+                    imagea2 = 'a2default.png'
+            if current >= 215000:
+                if not bonnie_kick:
+                    ap_bonnie = True
+                    af_bonnie = False
+                imagea4 = 'a4chica2.png'
+                right_light_door = 'secchica.png'
+                chica_kick = False
+                if chica_kick:
+                    right_light_door = 'right_light.png'
+                    imagea1 = 'a1default.png'
+                    imageb4 = 'b4default.png'
+            if current >= 230000:
+                if not chica_kick:
+                    ap_chica = True
+                    af_chica = False
+
+
 
         pygame.display.flip()
 
@@ -649,6 +779,8 @@ def office():
                         cnt_left += 1
                     elif right_door():
                         if cnt_right % 2 == 0:
+                            if right_light_door == 'secchica.png':
+                                chica_kick = True
                             image_office = right_light_door
                         else:
                             image_office = 'sec1.png'
@@ -663,6 +795,10 @@ def office():
 
             foxy_scream.draw(screen)
             foxy_scream.update(ap_foxy, af_foxy)
+
+            chica_scream.draw(screen)
+            chica_scream.update(ap_chica, af_chica)
+
             stop = False
 
             fon6 = pygame.Surface((1600, 720))
@@ -672,6 +808,7 @@ def office():
             gamestate = monitors.gamestate()
             gamestate = bonnies.gamestate(gamestate, 'lose')
             gamestate = foxies.gamestate(gamestate, 'lose')
+            gamestate = chicas.gamestate(gamestate, 'lose')
 
         elif gamestate == 'camerasup':
 
@@ -728,6 +865,10 @@ def office():
             foxy_scream.draw(screen)
             foxy_scream.update(ap_foxy, af_foxy)
             gamestate = foxies.gamestate(gamestate, 'lose')
+
+            chica_scream.draw(screen)
+            chica_scream.update(ap_chica, af_chica)
+            gamestate = chicas.gamestate(gamestate, 'lose')
 
         elif gamestate == '6 am':
             screen.fill((0, 0, 0))
