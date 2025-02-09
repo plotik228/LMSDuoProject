@@ -13,20 +13,38 @@ def terminate():
     sys.exit()
 
 
+def load_image(name, colorkey=None):
+    fullname = os.path.join('fnaf', name)
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
+    if colorkey is not None:
+        image = image.convert()
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
+    else:
+        image = image.convert_alpha()
+    return image
+
+
 def draw(screen, width, height):
     for i in range(10000):
         screen.fill(pygame.Color((180, 180, 180)),
                     (random.random() * width,
                      random.random() * height, 1, 1))
 
+
 if __name__ == '__main__':
     pygame.init()
     size = width, height = 1600, 720
     screen = pygame.display.set_mode(size)
+    main_image = load_image('mainmenu.png')
 
     running = True
     while running:
-        screen.fill((0, 0, 0))
+        screen.blit(pygame.transform.scale(main_image, (1600, 720)), (0, 0))
         draw(screen, width, height)
         font = pygame.font.Font(None, 70)
         text = font.render("PLAY", True, (255, 255, 255))
@@ -165,22 +183,6 @@ if __name__ == '__main__':
         pygame.display.flip()
 
     pygame.quit()
-
-
-def load_image(name, colorkey=None):
-    fullname = os.path.join('fnaf', name)
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-    if colorkey is not None:
-        image = image.convert()
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-    else:
-        image = image.convert_alpha()
-    return image
 
 
 def terminate():
@@ -323,6 +325,7 @@ class MonitorDown(pygame.sprite.Sprite):
         else:
             return False
 
+
 class Bonnie(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -435,6 +438,106 @@ class Chica(pygame.sprite.Sprite):
             return gamestate1
 
 
+class Freddy(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.images = []
+        self.image = pygame.Surface((0, 0))
+        self.images.append(self.image)
+        for i in range(1, 32):
+            image = load_image(f"freddy{i}.png")
+            image = pygame.transform.scale(image, (1600, 720))
+            self.images.append(image)
+        self.cur_frame = 0
+        self.image = self.images[self.cur_frame]
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.last_frame_time = 0
+        self.frame_delay = 20
+
+    def update(self, animated_playing, animated_finished):
+        if animated_playing:
+            cur_time = pygame.time.get_ticks()
+            if cur_time - self.last_frame_time >= self.frame_delay:
+                self.cur_frame = self.cur_frame + 1
+                if self.cur_frame < len(self.images):
+                    self.image = self.images[self.cur_frame]
+                    self.last_frame_time = cur_time
+                else:
+                    animated_playing = False
+                    animated_finished = True
+                    self.kill()
+
+    def gamestate(self, gamestate1, gamestate2):
+        if self.cur_frame == len(self.images):
+            return gamestate2
+        else:
+            return gamestate1
+
+
+class Freddy_Hal(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.images = []
+        self.image = pygame.Surface((0, 0))
+        self.images.append(self.image)
+        for i in range(1, 5):
+            image = load_image(f"freddy_hal_{i}.png")
+            image = pygame.transform.scale(image, (1600, 720))
+            self.images.append(image)
+        self.cur_frame = 0
+        self.image = self.images[self.cur_frame]
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.last_frame_time = 0
+        self.frame_delay = 20
+        self.current_cycle = 0
+        self.max_cycles = 4
+
+    def update(self, animated_playing, animated_finished):
+        if animated_playing:
+            cur_time = pygame.time.get_ticks()
+            if cur_time - self.last_frame_time >= self.frame_delay:
+                self.cur_frame = (self.cur_frame + 1) % len(self.images)
+                self.image = self.images[self.cur_frame]
+                self.last_frame_time = cur_time
+
+                if self.cur_frame == 0:
+                    self.current_cycle += 1
+                    if self.current_cycle >= self.max_cycles:
+                        animated_playing = False
+                        animated_finished = True
+                        self.kill()
+
+
+class Time(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.images = []
+        self.image = pygame.Surface((0, 0))
+        self.images.append(self.image)
+        for i in range(0, 43):
+            image = load_image(f"time{i}.png")
+            image = pygame.transform.scale(image, (900, 320))
+            self.images.append(image)
+        self.cur_frame = 0
+        self.image = self.images[self.cur_frame]
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.last_frame_time = 0
+        self.frame_delay = 20
+
+    def update(self, animated_playing, animated_finished):
+        if animated_playing:
+            cur_time = pygame.time.get_ticks()
+            if cur_time - self.last_frame_time >= self.frame_delay:
+                self.cur_frame = self.cur_frame + 1
+                if self.cur_frame < len(self.images):
+                    self.image = self.images[self.cur_frame]
+                    self.last_frame_time = cur_time
+                else:
+                    animated_playing = False
+                    animated_finished = True
+                    self.kill()
+
+
 def button():
     if pygame.mouse.get_pos()[0] >= 335 and pygame.mouse.get_pos()[0] <= 935 \
             and pygame.mouse.get_pos()[1] >= 650 and pygame.mouse.get_pos()[1] <= 710:
@@ -479,33 +582,38 @@ def image_return(x, y, click, image, imageb1, imagea1, image5, imagec1, image3, 
         else:
             return image
 
+
 def office_back(gamestate, down):
     if down:
         return 'office'
     else:
         return gamestate
 
+
 def left_door():
     if pygame.mouse.get_pos()[0] >= 24 and pygame.mouse.get_pos()[0] <= 68 and pygame.mouse.get_pos()[1] >= 365 \
-        and pygame.mouse.get_pos()[1] <= 442:
+            and pygame.mouse.get_pos()[1] <= 442:
         return True
     else:
         return False
 
+
 def right_door():
     if pygame.mouse.get_pos()[0] >= 1495 and pygame.mouse.get_pos()[0] <= 1539 and pygame.mouse.get_pos()[1] >= 365 \
-        and pygame.mouse.get_pos()[1] <= 442:
+            and pygame.mouse.get_pos()[1] <= 442:
         return True
     else:
         return False
+
 
 def hour_blit(hour, screen):
     font = pygame.font.Font(None, 30)
     text = font.render(hour, True, (255, 255, 255))
     screen.blit(text, (1500, 20))
 
+
 def office():
-    algorithm = 2
+    algorithm = random.randint(1, 3)
     last_hour = 0
 
     foxy_scream = pygame.sprite.GroupSingle()
@@ -519,6 +627,18 @@ def office():
     chica_scream = pygame.sprite.GroupSingle()
     chicas = Chica(0, 0)
     chica_scream.add(chicas)
+
+    freddy_scream = pygame.sprite.GroupSingle()
+    freddies = Freddy(0, 0)
+    freddy_scream.add(freddies)
+
+    freddy_hal = pygame.sprite.GroupSingle()
+    hals = Freddy_Hal(0, 0)
+    freddy_hal.add(hals)
+
+    time_finish = pygame.sprite.GroupSingle()
+    times = Time(350, 215)
+    time_finish.add(times)
 
     all_vents = pygame.sprite.GroupSingle()
     vents = Vents(780, 303)
@@ -590,6 +710,18 @@ def office():
     ap_chica = False
     af_chica = False
 
+    freddy_kick = False
+    ap_freddy = False
+    af_freddy = False
+
+    ap_hal = False
+    af_hal = False
+
+    ap_finish = True
+    af_finish = False
+
+    cnt_fill = 0
+
     while running:
         font = pygame.font.Font(None, 40)
         text = font.render(f"{hour} AM", True, (255, 255, 255))
@@ -600,7 +732,7 @@ def office():
                 if hour % 12 <= 4:
                     hour = (hour + 1) % 12
                     last_hour = current
-                else:
+                elif hour % 12 == 5 and gamestate != 'lose':
                     hour = 6
                     gamestate = '6 am'
 
@@ -676,9 +808,9 @@ def office():
                 imagec1 = 'c1itsme.png'
             if current >= 70000:
                 image7 = '7default.png'
-                imagea2 = 'a2foxy.png'
                 imagea4 = 'a4chica1.png'
             if current >= 80000:
+                imagea2 = 'a2foxy.png'
                 left_light_door = 'foxy3.png'
                 if foxy_kick:
                     left_light_door = 'left_light.png'
@@ -689,13 +821,9 @@ def office():
                 if not foxy_kick:
                     ap_foxy = True
                     af_foxy = False
-            if current >= 115000:
+            if current >= 125000:
                 imagea4 = 'a4default.png'
                 imageb4 = 'b4chica1.png'
-            if current >= 125000:
-                imageb4 = 'b4chica2.png'
-            if current >= 135000:
-                imageb4 = 'b4chica3.png'
                 right_light_door = 'secchica.png'
                 if chica_kick:
                     right_light_door = 'right_light.png'
@@ -734,19 +862,94 @@ def office():
                 if not bonnie_kick:
                     ap_bonnie = True
                     af_bonnie = False
+            if current >= 225000:
                 imagea4 = 'a4chica2.png'
+            if current >= 230000:
+                imagea4 = 'a4default.png'
+                imageb4 = 'b4chica1.png'
+
+        elif algorithm == 3:
+            if current >= 10000:
+                imagea1 = 'a1chica.png'
+                imageb1 = 'b1chica1.png'
+            if current >= 20000:
+                imageb1 = 'b1chica2.png'
+            if current >= 30000:
+                imagea1 = 'a1justfreddy.png'
+                image5 = '5bonnie1.png'
+            if current >= 40000:
+                imagea1 = 'a1empty.png'
+                image7 = '7freddy.png'
+            if current >= 50000:
+                image5 = '5bonnie2.png'
+            if current >= 60000:
+                imagea4 = 'a4freddy.png'
+                image7 = '7default.png'
+            if current >= 70000:
+                imagea4 = 'a4default.png'
+                imageb4 = 'b4freddy.png'
+                ap_hal = True
+                af_hal = False
+                if freddy_kick:
+                    imageb4 = 'b4default.png'
+                    imagea1 = 'a1justfreddy.png'
+            if current >= 85000:
+                if not freddy_kick:
+                    ap_freddy = True
+                    af_freddy = False
+            if current >= 90000:
+                image7 = '7chica1.png'
+            if current >= 95000:
+                image5 = '5default.png'
+                imageb1 = 'b1bonnie.png'
+            if current >= 100000:
+                image7 = '7chica2.png'
+            if current >= 105000:
+                imageb1 = 'b1bonnie2.png'
+            if current >= 110000:
+                image7 = '7default.png'
+                imagea4 = 'a4chica1.png'
+            if current >= 130000:
+                imagea4 = 'a4chica2.png'
+            if current >= 140000:
+                imageb1 = 'b1default.png'
+                image5 = '5bonnie1.png'
+            if current >= 150000:
+                image5 = '5bonnie2.png'
+                imagea4 = 'a4default.png'
+                imageb4 = 'b4chica1.png'
                 right_light_door = 'secchica.png'
-                chica_kick = False
                 if chica_kick:
                     right_light_door = 'right_light.png'
-                    imagea1 = 'a1default.png'
+                    imagea1 = 'a1bonnie.png'
                     imageb4 = 'b4default.png'
-            if current >= 230000:
+            if current >= 165000:
                 if not chica_kick:
                     ap_chica = True
                     af_chica = False
-
-
+            if current >= 175000:
+                image5 = '5default.png'
+                imagea2 = 'a2bonnie.png'
+            if current >= 185000:
+                imagea2 = 'a2default.png'
+                imageb2 = 'b2bonnie.png'
+                left_light_door = 'secbonnie.png'
+                if bonnie_kick:
+                    left_light_door = 'left_light.png'
+                    imagea1 = 'a1default.png'
+                    imageb2 = 'b2default.png'
+            if current >= 200000:
+                if not bonnie_kick:
+                    ap_bonnie = True
+                    af_bonnie = False
+            if current >= 210000:
+                imagec1 = 'c1look.png'
+            if current >= 220000:
+                imagec1 = 'c1foxy.png'
+            if current >= 230000:
+                imagec1 = 'c1out.png'
+            if current >= 235000:
+                imagec1 = 'c1itsme.png'
 
         pygame.display.flip()
 
@@ -781,11 +984,12 @@ def office():
                         if cnt_right % 2 == 0:
                             if right_light_door == 'secchica.png':
                                 chica_kick = True
+                            if current >= 70000 and current <= 85000:
+                                freddy_kick = True
                             image_office = right_light_door
                         else:
                             image_office = 'sec1.png'
                         cnt_right += 1
-
 
             all_mon_up.draw(screen)
             all_mon_up.update(animated_playing, animated_finished)
@@ -799,6 +1003,12 @@ def office():
             chica_scream.draw(screen)
             chica_scream.update(ap_chica, af_chica)
 
+            freddy_scream.draw(screen)
+            freddy_scream.update(ap_freddy, af_freddy)
+
+            freddy_hal.draw(screen)
+            freddy_hal.update(ap_hal, af_hal)
+
             stop = False
 
             fon6 = pygame.Surface((1600, 720))
@@ -809,6 +1019,7 @@ def office():
             gamestate = bonnies.gamestate(gamestate, 'lose')
             gamestate = foxies.gamestate(gamestate, 'lose')
             gamestate = chicas.gamestate(gamestate, 'lose')
+            gamestate = freddies.gamestate(gamestate, 'lose')
 
         elif gamestate == 'camerasup':
 
@@ -870,24 +1081,40 @@ def office():
             chica_scream.update(ap_chica, af_chica)
             gamestate = chicas.gamestate(gamestate, 'lose')
 
+            freddy_scream.draw(screen)
+            freddy_scream.update(ap_freddy, af_freddy)
+            gamestate = freddies.gamestate(gamestate, 'lose')
+
+            freddy_hal.draw(screen)
+            freddy_hal.update(ap_hal, af_hal)
+
         elif gamestate == '6 am':
-            screen.fill((0, 0, 0))
+            if cnt_fill == 0:
+                screen.fill((0, 0, 0))
+                cnt_fill += 1
+            time_finish.draw(screen)
+            time_finish.update(ap_finish, af_finish)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
-            font = pygame.font.Font(None, 100)
-            pos_x = 765
-            for i in '6 AM':
-                if stop_text != False:
-                    text = font.render(i, True, (255, 255, 255))
-                    screen.blit(text, (x, 325))
-                    pos_x += 70
-            stop_text = False
+            clock.tick(10)
 
         elif gamestate == 'lose':
             screen.fill((0, 0, 0))
+            font = pygame.font.Font(None, 70)
+            text = font.render("LOSE", True, (255, 255, 255))
+            tw = width // 2 - text.get_width() // 2
+            th = height // 2 - text.get_height() // 2
+
+            font2 = pygame.font.Font(None, 30)
+            con_text = font2.render("Для продолжения игры перезапустите приложение", True,
+                                    (128, 128, 128))
+            tw2 = width // 2 - con_text.get_width() // 2
+            screen.blit(text, (tw, th))
+            screen.blit(con_text, (tw2, 650))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
+
 
 office()
